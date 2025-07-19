@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Flashcard Learning Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #0e1b2e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e2e8f0;
+            position: relative;
+        }
+
+        /* International Theme Pattern Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="international" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(96,165,250,0.1)"/><path d="M0,10 Q10,0 20,10 Q10,20 0,10" fill="none" stroke="rgba(59,130,246,0.05)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23international)"/></svg>') repeat;
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            background: rgba(30, 41, 59, 0.9);
+            border-radius: 20px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 3.2em;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(96, 165, 250, 0.3);
+        }
+
+        .header p {
+            font-size: 1.3em;
+            color: #cbd5e1;
+            opacity: 0.9;
+        }
+
+        .flashcard-container {
+            margin: 40px 0;
+        }
+
+        .flashcard {
+            background: rgba(30, 41, 59, 0.95);
+            border-radius: 25px;
+            padding: 60px 40px;
+            margin: 30px 0;
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.3),
+                0 0 0 1px rgba(59, 130, 246, 0.2),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: all 0.4s ease;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .flashcard::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #60a5fa, #3b82f6, #1d4ed8);
+        }
+
+        .flashcard:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 
+                0 35px 70px rgba(0,0,0,0.4),
+                0 0 0 1px rgba(96, 165, 250, 0.4),
+                0 0 50px rgba(96, 165, 250, 0.2);
+        }
+
+        .card-content {
+            width: 100%;
+            z-index: 2;
+        }
+
+        .question h3, .answer h3 {
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .question h3 {
+            color: #60a5fa;
+        }
+
+        .answer h3 {
+            color: #34d399;
+        }
+
+        .question p, .answer p {
+            font-size: 1.4em;
+            line-height: 1.7;
+            color: #e2e8f0;
+            font-weight: 400;
+        }
+
+        .flip-hint {
+            position: absolute;
+            bottom: 20px;
+            right: 25px;
+            font-size: 1em;
+            color: #94a3b8;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .controls button {
+            padding: 18px 28px;
+            border: none;
+            border-radius: 15px;
+            background: rgba(59, 130, 246, 0.2);
+            color: #e2e8f0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .controls button:hover {
+            background: rgba(59, 130, 246, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.2);
+        }
+
+        .controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .card-counter {
+            background: rgba(30, 41, 59, 0.8);
+            padding: 15px 25px;
+            border-radius: 20px;
+            font-weight: 700;
+            color: #60a5fa;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            font-size: 1.1em;
+        }
+
+        .edit-btn {
+            background: rgba(251, 191, 36, 0.2) !important;
+            border: 1px solid rgba(251, 191, 36, 0.3) !important;
+        }
+
+        .edit-btn:hover {
+            background: rgba(251, 191, 36, 0.3) !important;
+            box-shadow: 0 15px 30px rgba(251, 191, 36, 0.2) !important;
+        }
+
+        .delete-btn {
+            background: rgba(239, 68, 68, 0.2) !important;
+            border: 1px solid rgba(239, 68, 68, 0.3) !important;
+        }
+
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.3) !important;
+            box-shadow: 0 15px 30px rgba(239, 68, 68, 0.2) !important;
+        }
+
+        .add-form, .edit-form {
+            background: rgba(30, 41, 59, 0.9);
+            padding: 40px;
+            border-radius: 25px;
+            margin-top: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .add-form h3, .edit-form h3 {
+            margin-bottom: 30px;
+            font-size: 1.8em;
+            color: #60a5fa;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #e2e8f0;
+            font-size: 1.1em;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 18px;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            font-size: 16px;
+            background: rgba(15, 23, 42, 0.8);
+            color: #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #94a3b8;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 15px;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .cancel-btn {
+            background: rgba(107, 114, 128, 0.3);
+            color: #e2e8f0;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cancel-btn:hover {
+            background: rgba(107, 114, 128, 0.5);
+            transform: translateY(-3px);
+        }
+
+        .loading {
+            display: none;
+            font-size: 1.4em;
+            margin: 30px 0;
+            color: #60a5fa;
+        }
+
+        .empty-state {
+            background: rgba(30, 41, 59, 0.8);
+            padding: 70px 50px;
+            border-radius: 25px;
+            margin: 50px 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .empty-state h3 {
+            color: #60a5fa;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .empty-state p {
+            color: #cbd5e1;
+            font-size: 1.2em;
+        }
+
+        .admin-link {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            background: rgba(30, 41, 59, 0.9);
+            color: #e2e8f0;
+            padding: 12px 25px;
+            border-radius: 20px;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            font-weight: 600;
+        }
+
+        .admin-link:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+        }
+
+        .keyboard-hints {
+            background: rgba(30, 41, 59, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .keyboard-hints h4 {
+            color: #60a5fa;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .keyboard-hints p {
+            color: #cbd5e1;
+            margin: 5px 0;
+            font-size: 0.95em;
+        }
+
+        .keyboard-hints kbd {
+            background: rgba(59, 130, 246, 0.2);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            color: #e2e8f0;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .edit-form {
+            display: none;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2.5em;
+            }
+            
+            .flashcard {
+                padding: 40px 25px;
+                min-height: 250px;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
+            
+            .controls button {
+                padding: 15px 20px;
+                font-size: 14px;
+            }
+
+            .add-form, .edit-form {
+                padding: 30px 20px;
+            }
+
+            .admin-link {
+                top: 15px;
+                right: 15px;
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .form-buttons {
+                flex-direction: column;
+            }
+
+            .submit-btn, .cancel-btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+
+        /* Success Animation */
+        @keyframes success {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .success-animation {
+            animation: success 0.6s ease;
+        }
+
+        /* Card Flip Animation */
+        .card-flip {
+            animation: flipCard 0.6s ease;
+        }
+
+        @keyframes flipCard {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(90deg); }
+            100% { transform: rotateY(0deg); }
+        }
+
+        /* Edit Mode Highlight */
+        .edit-mode {
+            border: 2px solid #fbbf24 !important;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1) !important;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="admin-link">🔧 Admin Panel</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Flashcard Learning</h1>
+            <p>Master knowledge through interactive flashcards</p>
+        </div>
+
+        <div class="loading" id="loading">⏳ Loading flashcards...</div>
+
+        <!-- Flashcard Display -->
+        <div id="flashcard-container" class="flashcard-container" style="display: none;">
+            <div class="flashcard" id="flashcard" onclick="flipCard()">
+                <div class="card-content" id="card-content">
+                    <!-- Content will be inserted here -->
+                </div>
+                <div class="flip-hint">👆 Click to flip</div>
+            </div>
+            
+            <div class="controls">
+                <button onclick="prevCard()">◀ Trước</button>
+                <div class="card-counter" id="card-counter">0 / 0</div>
+                <button onclick="nextCard()">Tiếp ▶</button>
+                <button onclick="editCurrentCard()" class="edit-btn">✏️ Sửa</button>
+                <button onclick="deleteCurrentCard()" class="delete-btn">🗑️ Xóa</button>
+                <button onclick="shuffleCards()">🔀 Xáo trộn</button>
+            </div>
+
+            <div class="keyboard-hints">
+                <h4>⌨️ Phím tắt</h4>
+                <p><kbd>←</kbd> Thẻ trước • <kbd>→</kbd> Thẻ tiếp • <kbd>Space</kbd> Lật thẻ • <kbd>E</kbd> Sửa • <kbd>Delete</kbd> Xóa</p>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <h3>📝 Chưa có flashcard nào</h3>
+            <p>Tạo flashcard đầu tiên của bạn bên dưới!</p>
+        </div>
+
+        <!-- Edit Flashcard Form -->
+        <div id="edit-form" class="edit-form">
+            <h3>✏️ Sửa Flashcard</h3>
+            <form id="edit-flashcard-form" onsubmit="updateFlashcard(event)">
+                <input type="hidden" id="edit-card-id">
+                <div class="form-group">
+                    <label for="edit-question">Câu hỏi:</label>
+                    <input type="text" id="edit-question" name="question" placeholder="Nhập câu hỏi..." required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-answer">Câu trả lời:</label>
+                    <textarea id="edit-answer" name="answer" rows="4" placeholder="Nhập câu trả lời..." required></textarea>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="submit-btn">💾 Cập nhật</button>
+                    <button type="button" class="cancel-btn" onclick="cancelEdit()">❌ Hủy</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Add New Flashcard Form -->
+        <div id="add-form" class="add-form">
+            <h3>➕ Tạo Flashcard Mới</h3>
+            <form id="add-flashcard-form" onsubmit="addFlashcard(event)">
+                <div class="form-group">
+                    <label for="question">Câu hỏi:</label>
+                    <input type="text" id="question" name="question" placeholder="Nhập câu hỏi của bạn..." required>
+                </div>
+                <div class="form-group">
+                    <label for="answer">Câu trả lời:</label>
+                    <textarea id="answer" name="answer" rows="4" placeholder="Nhập câu trả lời..." required></textarea>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="submit-btn">🚀 Thêm Flashcard</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let flashcards = [];
+        let currentCard = 0;
+        let showAnswer = false;
+        let isEditMode = false;
+
+        // Load flashcards when page loads
+        window.addEventListener('load', () => {
+            fetchFlashcards();
+        });
+
+        async function fetchFlashcards() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const response = await fetch('/api/flashcards');
+                flashcards = await response.json();
+                
+                if (flashcards.length > 0) {
+                    displayCurrentCard();
+                    document.getElementById('flashcard-container').style.display = 'block';
+                    document.getElementById('empty-state').style.display = 'none';
+                } else {
+                    document.getElementById('flashcard-container').style.display = 'none';
+                    document.getElementById('empty-state').style.display = 'block';
+                }
+                
+                document.getElementById('loading').style.display = 'none';
+            } catch (error) {
+                console.error('Error fetching flashcards:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('empty-state').style.display = 'block';
+            }
+        }
+
+        function displayCurrentCard() {
+            if (flashcards.length === 0) return;
+            
+            const card = flashcards[currentCard];
+            const content = document.getElementById('card-content');
+            const counter = document.getElementById('card-counter');
+            
+            if (!showAnswer) {
+                content.innerHTML = `
+                    <div class="question">
+                        <h3>❓ Câu hỏi</h3>
+                        <p>${card.question}</p>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="answer">
+                        <h3>✅ Câu trả lời</h3>
+                        <p>${card.answer}</p>
+                    </div>
+                `;
+            }
+            
+            counter.textContent = `${currentCard + 1} / ${flashcards.length}`;
+        }
+
+        function flipCard() {
+            if (isEditMode) return; // Prevent flipping in edit mode
+            
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.add('card-flip');
+            
+            setTimeout(() => {
+                showAnswer = !showAnswer;
+                displayCurrentCard();
+                flashcard.classList.remove('card-flip');
+            }, 300);
+        }
+
+        function nextCard() {
+            if (flashcards.length === 0) return;
+            currentCard = (currentCard + 1) % flashcards.length;
+            showAnswer = false;
+            displayCurrentCard();
+            exitEditMode();
+        }
+
+        function prevCard() {
+            if (flashcards.length === 0) return;
+            currentCard = (currentCard - 1 + flashcards.length) % flashcards.length;
+            showAnswer = false;
+            displayCurrentCard();
+            exitEditMode();
+        }
+
+        function shuffleCards() {
+            if (flashcards.length <= 1) return;
+            
+            // Fisher-Yates shuffle
+            for (let i = flashcards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [flashcards[i], flashcards[j]] = [flashcards[j], flashcards[i]];
+            }
+            
+            currentCard = 0;
+            showAnswer = false;
+            displayCurrentCard();
+            exitEditMode();
+            
+            // Show shuffle notification
+            showNotification('🔀 Đã xáo trộn thẻ!', 'success');
+        }
+
+        function editCurrentCard() {
+            if (flashcards.length === 0) return;
+            
+            const card = flashcards[currentCard];
+            
+            // Fill edit form
+            document.getElementById('edit-card-id').value = card.id;
+            document.getElementById('edit-question').value = card.question;
+            document.getElementById('edit-answer').value = card.answer;
+            
+            // Show edit form and hide add form
+            document.getElementById('edit-form').style.display = 'block';
+            document.getElementById('add-form').style.display = 'none';
+            
+            // Add edit mode styling
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.add('edit-mode');
+            isEditMode = true;
+            
+            // Scroll to edit form
+            document.getElementById('edit-form').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+        }
+
+        function cancelEdit() {
+            exitEditMode();
+        }
+
+        function exitEditMode() {
+            document.getElementById('edit-form').style.display = 'none';
+            document.getElementById('add-form').style.display = 'block';
+            
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.remove('edit-mode');
+            isEditMode = false;
+            
+            // Clear edit form
+            document.getElementById('edit-flashcard-form').reset();
+        }
+
+        async function updateFlashcard(event) {
+            event.preventDefault();
+            
+            const cardId = document.getElementById('edit-card-id').value;
+            const question = document.getElementById('edit-question').value;
+            const answer = document.getElementById('edit-answer').value;
+            
+            try {
+                const response = await fetch(`/api/flashcards/${cardId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question, answer }),
+                });
+                
+                if (response.ok) {
+                    await fetchFlashcards();
+                    exitEditMode();
+                    
+                    // Show success notification
+                    showNotification('✅ Đã cập nhật flashcard!', 'success');
+                }
+            } catch (error) {
+                console.error('Error updating flashcard:', error);
+                showNotification('❌ Lỗi khi cập nhật flashcard!', 'error');
+            }
+        }
+
+        async function addFlashcard(event) {
+            event.preventDefault();
+            
+            const question = document.getElementById('question').value;
+            const answer = document.getElementById('answer').value;
+            
+            try {
+                const response = await fetch('/api/flashcards', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question, answer }),
+                });
+                
+                if (response.ok) {
+                    document.getElementById('add-flashcard-form').reset();
+                    await fetchFlashcards();
+                    
+                    // Move to the new card
+                    currentCard = flashcards.length - 1;
+                    showAnswer = false;
+                    displayCurrentCard();
+                    
+                    // Show success notification
+                    showNotification('🚀 Đã thêm flashcard mới!', 'success');
+                }
+            } catch (error) {
+                console.error('Error adding flashcard:', error);
+                showNotification('❌ Lỗi khi thêm flashcard!', 'error');
+            }
+        }
+
+        async function deleteCurrentCard() {
+            if (flashcards.length === 0) return;
+            
+            if (!confirm('Bạn có chắc chắn muốn xóa flashcard này không?')) return;
+            
+            const cardId = flashcards[currentCard].id;
+            
+            try {
+                const response = await fetch(`/api/flashcards/${cardId}`, {
+                    method: 'DELETE',
+                });
+                
+                if (response.ok) {
+                    await fetchFlashcards();
+                    
+                    if (flashcards.length > 0) {
+                        if (currentCard >= flashcards.length) {
+                            currentCard = 0;
+                        }
+                        showAnswer = false;
+                        displayCurrentCard();
+                    }
+                    
+                    exitEditMode();
+                    showNotification('🗑️ Đã xóa flashcard!', 'success');
+                }
+            } catch (error) {
+                console.error('Error deleting flashcard:', error);
+                showNotification('❌ Lỗi khi xóa flashcard!', 'error');
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 25px;
+                background: ${type === 'success' ? 'rgba(16, 185, 129, 0.9)' : 'rgba(239, 68, 68, 0.9)'};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                font-weight: 600;
+                z-index: 1000;
+                backdrop-filter: blur(10px);
+                border: 1px solid ${type === 'success' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'};
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            // Add slide-in animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                    document.head.removeChild(style);
+                }, 300);
+            }, 3000);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (event) => {
+            // Prevent shortcuts when typing in form fields
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                return;
+            }
+            
+            switch(event.key) {
+                case 'ArrowLeft':
+                    event.preventDefault();
+                    prevCard();
+                    break;
+                case 'ArrowRight':
+                    event.preventDefault();
+                    nextCard();
+                    break;
+                case ' ':
+                    event.preventDefault();
+                    flipCard();
+                    break;
+                case 'e':
+                case 'E':
+                    event.preventDefault();
+                    if (!isEditMode) {
+                        editCurrentCard();
+                    }
+                    break;
+                case 'Escape':
+                    event.preventDefault();
+                    if (isEditMode) {
+                        cancelEdit();
+                    }
+                    break;
+                case 'Delete':
+                    event.preventDefault();
+                    deleteCurrentCard();
+                    break;
+            }
+        });
+
+        // Auto-refresh every 30 seconds to sync with admin changes
+        setInterval(fetchFlashcards, 30000);
+    </script>
+</body>
+</html>
